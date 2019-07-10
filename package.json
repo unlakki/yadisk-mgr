@@ -1,0 +1,34 @@
+{
+  "name": "yadisk-mgr",
+  "version": "0.0.1",
+  "description": "Yandex disk manager",
+  "author": {
+    "name": "Hibikaze"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ferisef/yadisk-mgr"
+  },
+  "homepage": "https://github.com/ferisef/yadisk-mgr#readme",
+  "keywords": [
+    "api",
+    "yandex",
+    "disk"
+  ],
+  "engines": {
+    "node": ">= 11.12.0"
+  },
+  "scripts": {
+    "start": "node index"
+  },
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/ferisef/yadisk-mgr/issues"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.5",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  }
+}
