@@ -20,7 +20,8 @@
     "node": ">= 11.12.0"
   },
   "scripts": {
-    "start": "node index"
+    "start": "node index",
+    "test": "node dev.test.js"
   },
   "private": true,
   "bugs": {
