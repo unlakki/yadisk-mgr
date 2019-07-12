@@ -3,7 +3,7 @@ node_modules
 yarn.lock
 
 # log
-.log
+*.log
 
 # dev test
 dev.test.js
