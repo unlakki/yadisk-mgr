@@ -1,10 +1,9 @@
 {
   "name": "yadisk-mgr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Yandex disk manager",
   "author": "Hibikaze",
   "license": "MIT",
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/ferisef/yadisk-mgr"
@@ -15,10 +14,7 @@
     "yandex",
     "disk"
   ],
-  "scripts": {
-    "start": "node index",
-    "test": "node dev.test.js"
-  },
+  "scripts": {},
   "private": true,
   "bugs": {
     "url": "https://github.com/ferisef/yadisk-mgr/issues"
