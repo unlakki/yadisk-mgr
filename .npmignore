@@ -6,4 +6,8 @@ yarn.lock
 *.log
 
 # npm ignore
+.eslintrc.js
+.gitattributes
 .gitignore
+.github/
+tsconfig.json
