@@ -1,6 +1,6 @@
 {
   "name": "yadisk-mgr",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Yandex disk manager",
   "author": "Hibikaze",
   "license": "MIT",
@@ -14,7 +14,10 @@
     "yandex",
     "disk"
   ],
-  "scripts": {},
+  "scripts": {
+    "tsc": "tsc"
+  },
+  "main": "./lib/index.js",
   "private": true,
   "bugs": {
     "url": "https://github.com/ferisef/yadisk-mgr/issues"
@@ -23,5 +26,15 @@
     "bluebird": "^3.5.5",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
+  },
+  "devDependencies": {
+    "@types/bluebird": "^3.5.27",
+    "@types/request-promise": "^4.1.44",
+    "@typescript-eslint/eslint-plugin": "^2.1.0",
+    "@typescript-eslint/parser": "^2.1.0",
+    "eslint": "^6.3.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "typescript": "^3.6.2"
   }
 }
