@@ -4,6 +4,3 @@ yarn.lock
 
 # log
 *.log
-
-# dev tests
-dev.test.js
