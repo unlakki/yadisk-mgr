@@ -17,6 +17,8 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    'no-trailing-spaces': 'error',
+    '@typescript-eslint/explicit-function-return-type': ['error'],
   },
 };
   
