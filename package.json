@@ -15,9 +15,9 @@
     "disk"
   ],
   "scripts": {
-    "tsc": "tsc"
+    "build": "webpack"
   },
-  "main": "lib/index.js",
+  "main": "lib/index",
   "files": [
     "lib"
   ],
@@ -38,6 +38,9 @@
     "eslint": "^6.3.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "typescript": "^3.6.2"
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.6.2",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.8"
   }
 }
