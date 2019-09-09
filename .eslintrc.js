@@ -19,6 +19,7 @@ module.exports = {
   rules: {
     'no-trailing-spaces': 'error',
     '@typescript-eslint/explicit-function-return-type': ['error'],
+    'no-underscore-dangle': 'error',
   },
 };
   
