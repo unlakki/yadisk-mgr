@@ -15,12 +15,13 @@
     "disk"
   ],
   "scripts": {
-    "build": "webpack"
+    "build": "tsc"
   },
-  "main": "lib/index",
+  "main": "./lib/index.js",
   "files": [
-    "lib"
+    "lib/*"
   ],
+  "typings": "lib/index.d.ts",
   "private": true,
   "bugs": {
     "url": "https://github.com/ferisef/yadisk-mgr/issues"
@@ -38,9 +39,6 @@
     "eslint": "^6.3.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "ts-loader": "^6.0.4",
-    "typescript": "^3.6.2",
-    "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.8"
+    "typescript": "^3.6.2"
   }
 }
