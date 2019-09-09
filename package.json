@@ -17,11 +17,8 @@
   "scripts": {
     "build": "tsc"
   },
-  "main": "./lib/index.js",
-  "files": [
-    "lib/*"
-  ],
-  "typings": "lib/index.d.ts",
+  "main": "./lib/DiskManager.js",
+  "typings": "./lib/DiskManager.d.ts",
   "private": true,
   "bugs": {
     "url": "https://github.com/ferisef/yadisk-mgr/issues"
