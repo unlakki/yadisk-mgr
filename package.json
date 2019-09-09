@@ -18,6 +18,9 @@
     "tsc": "tsc"
   },
   "main": "./lib/index.js",
+  "files": [
+    "./lib"
+  ],
   "private": true,
   "bugs": {
     "url": "https://github.com/ferisef/yadisk-mgr/issues"
