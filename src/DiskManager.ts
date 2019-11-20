@@ -12,7 +12,7 @@ export default class DiskManager {
     });
   }
 
-  addInstance(token: string): void {
+  public addInstance(token: string): void {
     const id = Crypto.createHash('md5').update(token).digest('hex');
 
     if (id in this.instances) {
@@ -22,7 +22,7 @@ export default class DiskManager {
     this.instances.set(id, new DiskInstance(token));
   }
 
-  removeInstance(id: string): void {
+  public removeInstance(id: string): void {
     if (!this.instances.has(id)) {
       throw new Error ('Disk instance not found.');
     }
@@ -30,7 +30,7 @@ export default class DiskManager {
     this.instances.delete(id);
   }
 
-  async getStatus(): Promise<DiskStatus> {
+  public async getStatus(): Promise<DiskStatus> {
     const promises = Array.from(this.instances.values()).map(async (instance) => {
       const { totalSpace, usedSpace } = await instance.getStatus();
 
@@ -45,11 +45,12 @@ export default class DiskManager {
     }));
   }
 
-  createDir(): void {
-    throw new Error('Not implemented.');
-  }
-
-  async getDirList(path: string, offset = 0, limit = 20, sort: SortBy = SortBy.Created): Promise<Array<Resource>> {
+  public async getDirList(
+    path: string,
+    offset = 0,
+    limit = 20,
+    sort: SortBy = SortBy.Created,
+  ): Promise<Array<Resource>> {
     if (path === '/') {
       const promises = Array.from(this.instances.values()).map(async (instance) => {
         const { usedSpace } = await instance.getStatus();
@@ -88,7 +89,7 @@ export default class DiskManager {
     }
   }
 
-  async getFileLink(path: string): Promise<{ url: string }> {
+  public async getFileLink(path: string): Promise<{ url: string }> {
     try {
       const paths = path.slice(1).split('/');
 
@@ -110,7 +111,7 @@ export default class DiskManager {
     }
   }
 
-  uploadFile(stream: Stream, extension: string): Promise<{ path: string }> {
+  public uploadFile(stream: Stream, extension: string): Promise<{ path: string }> {
     return new Promise((resolve, reject): void => {
       const chunks: Array<Uint8Array> = [];
 
@@ -163,7 +164,7 @@ export default class DiskManager {
     });
   }
 
-  async removeFile(path: string): Promise<boolean> {
+  public async removeFile(path: string): Promise<boolean> {
     try {
       const paths = path.slice(1).split('/');
 

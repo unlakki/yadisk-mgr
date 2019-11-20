@@ -42,11 +42,11 @@ export default class DiskInstance {
     this.token = token;
   }
 
-  getToken(): string {
+  public getToken(): string {
     return this.token;
   }
 
-  async getStatus(): Promise<DiskStatus> {
+  public async getStatus(): Promise<DiskStatus> {
     try {
       const res = await request(DiskInstance.baseUrl, {
         method: 'GET',
@@ -71,7 +71,7 @@ export default class DiskInstance {
     }
   }
 
-  async createDir(path: string): Promise<string> {
+  public async createDir(path: string): Promise<string> {
     const uri = `${DiskInstance.baseUrl}/resources?path=${encodeURI(path)}`;
 
     try {
@@ -92,7 +92,12 @@ export default class DiskInstance {
     }
   }
 
-  async getDirList(path: string, offset = 0, limit = 20, sort: SortBy = SortBy.Created): Promise<Array<Resource>> {
+  public async getDirList(
+    path: string,
+    offset = 0,
+    limit = 20,
+    sort: SortBy = SortBy.Created,
+  ): Promise<Array<Resource>> {
     const fileds = [
       '_embedded.sort',
       '_embedded.items.name',
@@ -128,7 +133,7 @@ export default class DiskInstance {
     }
   }
 
-  async getFileLink(path: string): Promise<string> {
+  public async getFileLink(path: string): Promise<string> {
     const uri = `${DiskInstance.baseUrl}/resources/download?path=${encodeURI(path)}`;
 
     try {
@@ -160,7 +165,7 @@ export default class DiskInstance {
     }
   }
 
-  async uploadFile(path: string, stream: Stream): Promise<boolean> {
+  public async uploadFile(path: string, stream: Stream): Promise<boolean> {
     const uri = `${DiskInstance.baseUrl}/resources/upload/?path=${encodeURI(path)}`;
 
     try {
@@ -191,7 +196,7 @@ export default class DiskInstance {
     }
   }
 
-  async removeFile(path: string): Promise<boolean> {
+  public async removeFile(path: string): Promise<boolean> {
     const uri = `${DiskInstance.baseUrl}/resources?path=${encodeURI(path)}&permanently=true`;
 
     try {
