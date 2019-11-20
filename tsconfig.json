@@ -2,11 +2,14 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
+    "outDir": "lib",
     "resolveJsonModule": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "declaration": true,
+    "removeComments": true,
   },
   "include": [
     "src/**/*.ts"
