@@ -1,13 +1,13 @@
-# npm
-node_modules
-yarn.lock
+.*
 
-# log
-*.log
+# modules
+node_modules/
 
-# npm ignore
-.eslintrc.js
-.gitattributes
-.gitignore
-.github/
-tsconfig.json
+# sources
+src/
+
+# webpack
+**/webpack.config.js
+
+# ts
+**/tsconfig.json
