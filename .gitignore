@@ -1,8 +1,8 @@
-# npm
+# modules
 node_modules/
 yarn.lock
 
-# log
+# logging
 *.log
 
 # misc
