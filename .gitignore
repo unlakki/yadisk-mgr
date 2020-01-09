@@ -2,8 +2,11 @@
 node_modules/
 yarn.lock
 
-# logging
+# log files
 *.log
 
 # misc
 .DS_Store
+
+# env variables
+.env
