@@ -1,11 +1,5 @@
 /// <reference types="node" />
 import { Stream } from 'stream';
-export interface DiskStatus {
-    id?: string;
-    totalSpace: number;
-    usedSpace: number;
-    maxFileSize?: number;
-}
 export declare enum SortBy {
     Name = "name",
     Path = "path",
@@ -18,21 +12,32 @@ export declare enum ResourceType {
     File = "file"
 }
 export interface Resource {
-    type: ResourceType;
     name: string;
-    created?: Date;
-    modified?: Date;
-    media_type?: string;
+    type: ResourceType;
+    mediaType?: string;
     size?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+export interface DiskStatus {
+    id?: string;
+    totalSpace: number;
+    usedSpace: number;
+    maxFileSize?: number;
+}
+export interface DirListOptions {
+    offset: number;
+    limit: number;
+    sort: SortBy;
 }
 export default class DiskInstance {
-    private static readonly baseUrl;
-    private token;
+    private static readonly BASE_API_URL;
+    private _token;
     constructor(token: string);
-    getToken(): string;
+    get token(): string;
     getStatus(): Promise<DiskStatus>;
     createDir(path: string): Promise<string>;
-    getDirList(path: string, offset?: number, limit?: number, sort?: SortBy): Promise<Array<Resource>>;
+    getDirList(path: string, options?: DirListOptions): Promise<Array<Resource>>;
     getFileLink(path: string): Promise<string>;
     uploadFile(path: string, stream: Stream): Promise<boolean>;
     removeFile(path: string): Promise<boolean>;

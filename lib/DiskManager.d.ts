@@ -1,19 +1,14 @@
 /// <reference types="node" />
 import { Stream } from 'stream';
-import { DiskStatus, SortBy, Resource } from './DiskInstance';
+import { Resource, DiskStatus, DirListOptions } from './DiskInstance';
 export default class DiskManager {
     private instances;
-    constructor(tokens: Array<string>);
+    constructor(tokenList: Array<string>);
     addInstance(token: string): void;
     removeInstance(id: string): void;
     getStatus(): Promise<DiskStatus>;
-    createDir(): void;
-    getDirList(path: string, offset?: number, limit?: number, sort?: SortBy): Promise<Array<Resource>>;
-    getFileLink(path: string): Promise<{
-        url: string;
-    }>;
-    uploadFile(stream: Stream, extension: string): Promise<{
-        path: string;
-    }>;
+    getDirList(path: string, options?: DirListOptions): Promise<Array<Resource>>;
+    getFileLink(path: string): Promise<string>;
+    uploadFile(stream: Stream, extension?: string): Promise<string>;
     removeFile(path: string): Promise<boolean>;
 }
