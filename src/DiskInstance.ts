@@ -1,15 +1,9 @@
-/* eslint-disable @typescript-eslint/camelcase */
-
 import Bluebird from 'bluebird';
 import request from 'request-promise';
 import { Stream } from 'stream';
-
-export interface DiskStatus {
-  id?: string;
-  totalSpace: number;
-  usedSpace: number;
-  maxFileSize?: number;
-}
+import QueryString from 'querystring';
+import { StatusCodeError } from 'request-promise/errors';
+import DiskManagerError from './errors/DiskManagerError';
 
 export enum SortBy {
   Name = 'name',
@@ -25,195 +19,286 @@ export enum ResourceType {
 }
 
 export interface Resource {
-  type: ResourceType;
   name: string;
-  created?: Date;
-  modified?: Date;
+  type: ResourceType;
+  mediaType?: string;
+  size?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface DiskStatus {
+  id?: string;
+  totalSpace: number;
+  usedSpace: number;
+  maxFileSize?: number;
+}
+
+interface InternalResource {
+  name: string;
+  type: ResourceType;
   media_type?: string;
   size?: number;
+  created: string;
+  modified: string;
+}
+
+export interface DirListOptions {
+  offset: number;
+  limit: number;
+  sort: SortBy;
 }
 
 export default class DiskInstance {
-  private static readonly baseUrl: string = 'https://cloud-api.yandex.net/v1/disk';
+  private static readonly BASE_API_URL = 'https://cloud-api.yandex.net/v1/disk';
 
-  private token: string;
+  private _token: string;
 
   constructor(token: string) {
-    this.token = token;
+    this._token = token;
   }
 
-  public getToken(): string {
-    return this.token;
+  public get token(): string {
+    return this._token;
   }
 
   public async getStatus(): Promise<DiskStatus> {
     try {
-      const res = await request(DiskInstance.baseUrl, {
+      const res = await request(DiskInstance.BASE_API_URL, {
         method: 'GET',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
       const {
-        user, total_space, used_space, max_file_size,
+        total_space: totalSpace,
+        used_space: usedSpace,
+        max_file_size: maxFileSize,
+        user,
       } = JSON.parse(res);
 
       return {
-        id: user.uid, totalSpace: total_space, usedSpace: used_space, maxFileSize: max_file_size,
+        id: user.uid, totalSpace, usedSpace, maxFileSize,
       };
     } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
       }
 
-      throw new Error(JSON.parse(e.error).description);
+      throw new DiskManagerError('Unknown error.');
     }
   }
 
   public async createDir(path: string): Promise<string> {
-    const uri = `${DiskInstance.baseUrl}/resources?path=${encodeURI(path)}`;
+    const query = QueryString.stringify({ path });
+
+    const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
       const res = await request(uri, {
         method: 'PUT',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
       return JSON.parse(res).href;
     } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          case 409:
+            throw new DiskManagerError('Resource already exists.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
       }
 
-      throw new Error(JSON.parse(e.error).description);
+      throw new DiskManagerError('Unknown error.');
     }
   }
 
   public async getDirList(
     path: string,
-    offset = 0,
-    limit = 20,
-    sort: SortBy = SortBy.Created,
+    options: DirListOptions = { offset: 0, limit: 20, sort: SortBy.Created },
   ): Promise<Array<Resource>> {
-    const fileds = [
-      '_embedded.sort',
-      '_embedded.items.name',
-      '_embedded.items.size',
-      '_embedded.items.type',
-      '_embedded.items.media_type',
-      '_embedded.items.created',
-      '_embedded.items.modified',
-    ].join(',');
+    const fields = [
+      'sort',
+      ...[
+        'name',
+        'size',
+        'type',
+        'media_type',
+        'created',
+        'modified',
+      ].map((field) => `items.${field}`),
+    ].map((field) => `_embedded.${field}`).join(',');
 
-    const uri = `${DiskInstance.baseUrl}/resources?path=${encodeURI(path)}&offset=${offset}&limit=${limit}&sort=${sort}&fields=${fileds}`;
+    const query = QueryString.stringify({
+      path,
+      ...options,
+      fields,
+    });
+
+    const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
       const res = await request(uri, {
         method: 'GET',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
-      return JSON.parse(res)._embedded.items; // eslint-disable-line no-underscore-dangle
-    } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      const items = JSON.parse(res)?._embedded?.items as Array<InternalResource>;
+      if (!items) {
+        throw new DiskManagerError('Resource is not a directory.');
       }
 
-      switch (e.message) {
-        case 'Cannot read property \'items\' of undefined':
-          throw new Error('Resource not folder.');
-        default:
-          throw new Error(JSON.parse(e.error).description);
+      return items.map(({
+        created, modified, media_type: mediaType, ...itemData
+      }) => {
+        const item: Resource = {
+          ...itemData,
+          createdAt: new Date(created),
+          updatedAt: new Date(modified),
+        };
+
+        if (mediaType) {
+          item.mediaType = mediaType;
+        }
+
+        return item;
+      });
+    } catch (e) {
+      if (e instanceof DiskManagerError) {
+        throw e;
       }
+
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default: {
+            throw new DiskManagerError(JSON.parse(e.error).description);
+          }
+        }
+      }
+
+      throw new DiskManagerError('Unknown error.');
     }
   }
 
   public async getFileLink(path: string): Promise<string> {
-    const uri = `${DiskInstance.baseUrl}/resources/download?path=${encodeURI(path)}`;
+    const query = QueryString.stringify({ path });
+
+    const uri = `${DiskInstance.BASE_API_URL}/resources/download?${query}`;
 
     try {
       const res = await request(uri, {
         method: 'GET',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
       const { href } = JSON.parse(res);
-
       if (!href) {
-        throw new Error('Unable to get link for disk instance.');
+        throw new DiskManagerError('Unable to get link for disk instance.');
       }
 
       return href;
     } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      if (e instanceof DiskManagerError) {
+        throw e;
       }
 
-      const { error } = e;
-      if (error) {
-        throw new Error(JSON.parse(error).description);
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
       }
 
-      throw e;
+      throw new DiskManagerError('Unknown error.');
     }
   }
 
   public async uploadFile(path: string, stream: Stream): Promise<boolean> {
-    const uri = `${DiskInstance.baseUrl}/resources/upload/?path=${encodeURI(path)}`;
+    const query = QueryString.stringify({ path });
+
+    const uri = `${DiskInstance.BASE_API_URL}/resources/upload/?${query}`;
 
     try {
       const res = await request(uri, {
         method: 'GET',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
-      return new Bluebird((resolve, reject): void => {
-        const { href } = JSON.parse(res);
-
-        stream.pipe(request.put(href))
+      return new Bluebird((resolve, reject) => {
+        stream.pipe(request.put(JSON.parse(res).href))
           .on('complete', () => {
             resolve(true);
           })
           .on('error', () => {
-            reject(new Error('Error while upload.'));
+            reject(new DiskManagerError('Error while upload.'));
           });
       });
     } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
       }
 
-      throw new Error(JSON.parse(e.error).description);
+      throw new DiskManagerError('Unknown error.');
     }
   }
 
   public async removeFile(path: string): Promise<boolean> {
-    const uri = `${DiskInstance.baseUrl}/resources?path=${encodeURI(path)}&permanently=true`;
+    const query = QueryString.stringify({
+      path,
+      permanently: true,
+    });
+
+    const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
       await request(uri, {
         method: 'DELETE',
         headers: {
-          authorization: `OAuth ${this.token}`,
+          authorization: `OAuth ${this._token}`,
         },
       });
 
       return true;
     } catch (e) {
-      if (e.message.includes('ENOTFOUND')) {
-        throw new Error('Could not connect to API.');
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          case 409:
+            throw new DiskManagerError('Unable to remove disk instance.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
       }
 
-      throw new Error(JSON.parse(e.error).description);
+      throw new DiskManagerError('Unknown error.');
     }
   }
 }
