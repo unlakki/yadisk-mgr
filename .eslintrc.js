@@ -18,5 +18,7 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
   ],
-  rules: {},
+  rules: {
+    'no-underscore-dangle': ['error', { allowAfterThis: true }],
+  },
 };
