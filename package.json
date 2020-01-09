@@ -1,8 +1,8 @@
 {
   "name": "yadisk-mgr",
-  "version": "0.8.7",
-  "description": "Yandex disk manager",
-  "author": "Hibikaze",
+  "version": "0.8.8",
+  "description": "Yandex disk manager.",
+  "author": "Uwufule",
   "license": "MIT",
   "repository": {
     "type": "git",
