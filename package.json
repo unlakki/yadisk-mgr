@@ -1,14 +1,14 @@
 {
   "name": "yadisk-mgr",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Yandex disk manager.",
   "author": "Uwufule",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ferisef/yadisk-mgr"
+    "url": "https://github.com/uwufule/yadisk-mgr"
   },
-  "homepage": "https://github.com/ferisef/yadisk-mgr#readme",
+  "homepage": "https://github.com/uwufule/yadisk-mgr#readme",
   "keywords": [
     "api",
     "yandex",
@@ -17,14 +17,11 @@
   "scripts": {
     "build": "webpack"
   },
-  "directories": {
-    "lib": "lib/"
-  },
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "private": true,
   "bugs": {
-    "url": "https://github.com/ferisef/yadisk-mgr/issues"
+    "url": "https://github.com/uwufule/yadisk-mgr/issues"
   },
   "dependencies": {
     "bluebird": "^3.5.5",
