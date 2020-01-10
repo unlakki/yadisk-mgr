@@ -1,7 +1,7 @@
-import Bluebird from 'bluebird';
-import request from 'request-promise';
 import { Stream } from 'stream';
 import QueryString from 'querystring';
+import Bluebird from 'bluebird';
+import request from 'request-promise';
 import { StatusCodeError } from 'request-promise/errors';
 import DiskManagerError from './errors/DiskManagerError';
 
@@ -18,6 +18,17 @@ export enum ResourceType {
   File = 'file',
 }
 
+interface YandexDiskResource {
+  name: string;
+  type: ResourceType;
+  media_type?: string;
+  size?: number;
+  created: string;
+  modified: string;
+}
+
+type YandexDiskResponseItems = Array<YandexDiskResource> | undefined;
+
 export interface Resource {
   name: string;
   type: ResourceType;
@@ -32,15 +43,6 @@ export interface DiskStatus {
   totalSpace: number;
   usedSpace: number;
   maxFileSize?: number;
-}
-
-interface InternalResource {
-  name: string;
-  type: ResourceType;
-  media_type?: string;
-  size?: number;
-  created: string;
-  modified: string;
 }
 
 export interface DirListOptions {
@@ -157,7 +159,7 @@ export default class DiskInstance {
         },
       });
 
-      const items = JSON.parse(res)?._embedded?.items as Array<InternalResource>;
+      const items = JSON.parse(res)?._embedded?.items as YandexDiskResponseItems;
       if (!items) {
         throw new DiskManagerError('Resource is not a directory.');
       }
