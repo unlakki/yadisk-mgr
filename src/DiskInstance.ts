@@ -28,7 +28,7 @@ interface YandexDiskResource {
   modified: string;
 }
 
-type YandexDiskResponseItems = Array<YandexDiskResource> | undefined;
+type YandexDiskResponseItems = YandexDiskResource[] | undefined;
 
 export interface Resource {
   name: string;
