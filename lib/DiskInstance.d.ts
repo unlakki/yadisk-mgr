@@ -30,6 +30,11 @@ export interface DirListOptions {
     limit: number;
     sort: SortBy;
 }
+export interface UploadFileOptions {
+    fileName?: string;
+    path?: string;
+    extension?: string;
+}
 export default class DiskInstance {
     private static readonly BASE_API_URL;
     private _token;
@@ -37,8 +42,8 @@ export default class DiskInstance {
     get token(): string;
     getStatus(): Promise<DiskStatus>;
     createDir(path: string): Promise<string>;
-    getDirList(path: string, options?: DirListOptions): Promise<Array<Resource>>;
+    getDirList(path: string, options?: DirListOptions): Promise<Resource[]>;
     getFileLink(path: string): Promise<string>;
-    uploadFile(path: string, stream: Stream): Promise<boolean>;
+    uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string>;
     removeFile(path: string): Promise<boolean>;
 }
