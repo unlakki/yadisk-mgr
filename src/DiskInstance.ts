@@ -1,4 +1,5 @@
-import { Stream } from 'stream';
+import { Stream, Duplex } from 'stream';
+import Crypto from 'crypto';
 import QueryString from 'querystring';
 import Bluebird from 'bluebird';
 import request from 'request-promise';
@@ -51,6 +52,12 @@ export interface DirListOptions {
   sort: SortBy;
 }
 
+export interface UploadFileOptions {
+  fileName?: string;
+  path?: string;
+  extension?: string;
+}
+
 export default class DiskInstance {
   private static readonly BASE_API_URL = 'https://cloud-api.yandex.net/v1/disk';
 
@@ -99,7 +106,6 @@ export default class DiskInstance {
 
   public async createDir(path: string): Promise<string> {
     const query = QueryString.stringify({ path });
-
     const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
@@ -130,7 +136,7 @@ export default class DiskInstance {
   public async getDirList(
     path: string,
     options: DirListOptions = { offset: 0, limit: 20, sort: SortBy.Created },
-  ): Promise<Array<Resource>> {
+  ): Promise<Resource[]> {
     const fields = [
       'sort',
       ...[
@@ -148,7 +154,6 @@ export default class DiskInstance {
       ...options,
       fields,
     });
-
     const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
@@ -200,7 +205,6 @@ export default class DiskInstance {
 
   public async getFileLink(path: string): Promise<string> {
     const query = QueryString.stringify({ path });
-
     const uri = `${DiskInstance.BASE_API_URL}/resources/download?${query}`;
 
     try {
@@ -235,40 +239,59 @@ export default class DiskInstance {
     }
   }
 
-  public async uploadFile(path: string, stream: Stream): Promise<boolean> {
-    const query = QueryString.stringify({ path });
+  public async uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string> {
+    return new Bluebird((resolve, reject) => {
+      const chunks: Uint8Array[] = [];
 
-    const uri = `${DiskInstance.BASE_API_URL}/resources/upload/?${query}`;
+      stream.on('data', (chunk) => chunks.push(chunk));
 
-    try {
-      const res = await request(uri, {
-        method: 'GET',
-        headers: {
-          authorization: `OAuth ${this._token}`,
-        },
-      });
+      stream.on('end', async () => {
+        const buffer = Buffer.concat(chunks);
 
-      return new Bluebird((resolve, reject) => {
-        stream.pipe(request.put(JSON.parse(res).href))
-          .on('complete', () => {
-            resolve(true);
-          })
-          .on('error', () => {
-            reject(new DiskManagerError('Error while upload.'));
+        const bufferStream = new Duplex();
+
+        bufferStream.push(buffer);
+        bufferStream.push(null);
+
+        try {
+          const fileName = options && options.fileName
+            ? options.fileName
+            : Crypto.createHash('sha256').update(buffer).digest('hex');
+
+          const file = `${fileName}${options && options.extension ? `.${options.extension}` : ''}`;
+          const path = `${options && options.path ? options.path : '/'}${file}`;
+
+          const query = QueryString.stringify({ path });
+          const uri = `${DiskInstance.BASE_API_URL}/resources/upload/?${query}`;
+
+          const res = await request(uri, {
+            method: 'GET',
+            headers: {
+              authorization: `OAuth ${this._token}`,
+            },
           });
-      });
-    } catch (e) {
-      if (e instanceof StatusCodeError) {
-        switch (e.statusCode) {
-          case 401:
-            throw new DiskManagerError('Could not connect to API.');
-          default:
-            throw new DiskManagerError(JSON.parse(e.error).description);
-        }
-      }
 
-      throw new DiskManagerError('Unknown error.');
-    }
+          bufferStream.pipe(request.put(JSON.parse(res).href))
+            .on('complete', () => {
+              resolve(path);
+            })
+            .on('error', () => {
+              reject(new DiskManagerError('Error while upload.'));
+            });
+        } catch (e) {
+          if (e instanceof StatusCodeError) {
+            switch (e.statusCode) {
+              case 401:
+                throw new DiskManagerError('Could not connect to API.');
+              default:
+                throw new DiskManagerError(JSON.parse(e.error).description);
+            }
+          }
+
+          throw new DiskManagerError('Unknown error.');
+        }
+      });
+    });
   }
 
   public async removeFile(path: string): Promise<boolean> {
@@ -276,7 +299,6 @@ export default class DiskInstance {
       path,
       permanently: true,
     });
-
     const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
 
     try {
