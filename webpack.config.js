@@ -1,4 +1,6 @@
 const path = require('path');
+const webpackNodeExternals = require('webpack-node-externals');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -9,6 +11,9 @@ module.exports = {
   output: {
     path: path.resolve('./lib'),
     filename: 'index.js',
+    libraryTarget: 'umd',
+    library: 'YaDiskMrg',
+    umdNamedDefine: true,
   },
   module: {
     rules: [
@@ -23,9 +28,19 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js'],
   },
-  externals: [],
+  externals: [
+    webpackNodeExternals({
+      whitelist: [
+        'bluebird',
+        'request',
+        'request-promise',
+        'request-promise/errors',
+      ],
+    }),
+  ],
   devtool: false,
   plugins: [
+    new CleanWebpackPlugin(),
     new webpack.optimize.ModuleConcatenationPlugin(),
   ],
   optimization: {
