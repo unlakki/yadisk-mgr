@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "module": "commonjs",
+    "lib": ["es2015"],
     "outDir": "lib",
-    "resolveJsonModule": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "declaration": true,
-    "removeComments": true,
   },
   "include": [
     "src/**/*.ts"
