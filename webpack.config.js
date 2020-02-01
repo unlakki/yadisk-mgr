@@ -9,11 +9,9 @@ module.exports = {
   entry: './src/index.ts',
   mode: 'production',
   output: {
+    libraryTarget: 'umd',
     path: path.resolve('./lib'),
     filename: 'index.js',
-    libraryTarget: 'umd',
-    library: 'YaDiskMrg',
-    umdNamedDefine: true,
   },
   module: {
     rules: [
