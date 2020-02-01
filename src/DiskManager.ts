@@ -1,5 +1,8 @@
-import { Stream, Duplex } from 'stream';
+import { Stream } from 'stream';
 import Crypto from 'crypto';
+import Bluebird from 'bluebird';
+import streamToBuffer from './utils/streamToBuffer';
+import bufferToStream from './utils/bufferToStream';
 import DiskInstance, {
   SortBy,
   ResourceType,
@@ -43,7 +46,7 @@ export default class DiskManager {
       return { totalSpace, usedSpace };
     });
 
-    const instances = await Promise.all(promises);
+    const instances = await Bluebird.all(promises);
 
     return instances.reduce(({ totalSpace, usedSpace }, instance) => ({
       totalSpace: totalSpace + instance.totalSpace,
@@ -66,7 +69,7 @@ export default class DiskManager {
         };
       });
 
-      const rootDirList = await Promise.all(promises);
+      const rootDirList = await Bluebird.all(promises);
       return rootDirList;
     }
 
@@ -93,49 +96,32 @@ export default class DiskManager {
     return url;
   }
 
-  public uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const chunks: Array<Uint8Array> = [];
+  public async uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string> {
+    const freeSpaceRequestList = Array.from(this.instances.values()).map(async (instance) => {
+      const { totalSpace, usedSpace } = await instance.getStatus();
 
-      stream.on('data', (chunk) => chunks.push(chunk));
-
-      stream.on('end', async () => {
-        const promises = Array.from(this.instances.values()).map(async (instance) => {
-          const { totalSpace, usedSpace } = await instance.getStatus();
-
-          return {
-            id: Crypto.createHash('md5').update(instance.token).digest('hex'),
-            freeSpace: totalSpace - usedSpace,
-          };
-        });
-
-        const buffer = Buffer.concat(chunks);
-
-        const bufferStream = new Duplex();
-
-        bufferStream.push(buffer);
-        bufferStream.push(null);
-
-        try {
-          const instances = await Promise.all(promises);
-          const { id, freeSpace } = instances.sort((a, b) => b.freeSpace - a.freeSpace)[0];
-
-          if (freeSpace < buffer.length) {
-            throw new DiskManagerError('Not enough free space.');
-          }
-
-          const instance = this.instances.get(id);
-          if (!instance) {
-            throw new DiskManagerError('Disk instance not found.');
-          }
-
-          const path = await instance.uploadFile(bufferStream, options);
-          resolve(path);
-        } catch (e) {
-          reject(e);
-        }
-      });
+      return {
+        id: Crypto.createHash('md5').update(instance.token).digest('hex'),
+        freeSpace: totalSpace - usedSpace,
+      };
     });
+
+    const freeSpaceList = await Bluebird.all(freeSpaceRequestList);
+    const { id, freeSpace } = freeSpaceList.sort((a, b) => b.freeSpace - a.freeSpace)[0];
+
+    const buffer = await streamToBuffer(stream);
+
+    if (freeSpace < buffer.length) {
+      throw new DiskManagerError('Not enough free space.');
+    }
+
+    const instance = this.instances.get(id);
+    if (!instance) {
+      throw new DiskManagerError('Disk instance not found.');
+    }
+
+    const path = await instance.uploadFile(bufferToStream(buffer), options);
+    return path;
   }
 
   public async removeFile(path: string): Promise<boolean> {

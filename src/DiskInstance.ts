@@ -1,9 +1,11 @@
-import { Stream, Duplex } from 'stream';
+import { Stream } from 'stream';
 import Crypto from 'crypto';
 import QueryString from 'querystring';
 import Bluebird from 'bluebird';
 import request from 'request-promise';
 import { StatusCodeError } from 'request-promise/errors';
+import streamToBuffer from './utils/streamToBuffer';
+import bufferToStream from './utils/bufferToStream';
 import DiskManagerError from './errors/DiskManagerError';
 
 export enum SortBy {
@@ -240,58 +242,51 @@ export default class DiskInstance {
   }
 
   public async uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string> {
-    return new Bluebird((resolve, reject) => {
-      const chunks: Uint8Array[] = [];
+    const buffer = await streamToBuffer(stream);
 
-      stream.on('data', (chunk) => chunks.push(chunk));
+    const fileName = options?.fileName
+      || Crypto.createHash('sha256').update(buffer).digest('hex');
 
-      stream.on('end', async () => {
-        const buffer = Buffer.concat(chunks);
+    let extension = options?.extension;
+    if (extension) {
+      extension = `${extension.startsWith('.') ? '' : '.'}${extension}`;
+    }
 
-        const bufferStream = new Duplex();
+    const file = `${fileName}${extension || ''}`;
+    const path = `${options?.path || ''}${options?.path?.endsWith('/') ? '' : '/'}${file}`;
 
-        bufferStream.push(buffer);
-        bufferStream.push(null);
+    const query = QueryString.stringify({ path });
+    const uri = `${DiskInstance.BASE_API_URL}/resources/upload/?${query}`;
 
-        try {
-          const fileName = options && options.fileName
-            ? options.fileName
-            : Crypto.createHash('sha256').update(buffer).digest('hex');
-
-          const file = `${fileName}${options && options.extension ? `.${options.extension}` : ''}`;
-          const path = `${options && options.path ? options.path : '/'}${file}`;
-
-          const query = QueryString.stringify({ path });
-          const uri = `${DiskInstance.BASE_API_URL}/resources/upload/?${query}`;
-
-          const res = await request(uri, {
-            method: 'GET',
-            headers: {
-              authorization: `OAuth ${this._token}`,
-            },
-          });
-
-          bufferStream.pipe(request.put(JSON.parse(res).href))
-            .on('complete', () => {
-              resolve(path);
-            })
-            .on('error', () => {
-              reject(new DiskManagerError('Error while upload.'));
-            });
-        } catch (e) {
-          if (e instanceof StatusCodeError) {
-            switch (e.statusCode) {
-              case 401:
-                throw new DiskManagerError('Could not connect to API.');
-              default:
-                throw new DiskManagerError(JSON.parse(e.error).description);
-            }
-          }
-
-          throw new DiskManagerError('Unknown error.');
-        }
+    try {
+      const res = await request(uri, {
+        method: 'GET',
+        headers: {
+          authorization: `OAuth ${this._token}`,
+        },
       });
-    });
+
+      return new Bluebird((resolve, reject) => {
+        bufferToStream(buffer).pipe(request.put(JSON.parse(res).href))
+          .on('complete', () => {
+            resolve(path);
+          })
+          .on('error', () => {
+            reject(new DiskManagerError('Error while upload.'));
+          });
+      });
+    } catch (e) {
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default:
+            throw new DiskManagerError(JSON.parse(e.error).description);
+        }
+      }
+
+      throw new DiskManagerError('Unknown error.');
+    }
   }
 
   public async removeFile(path: string): Promise<boolean> {
