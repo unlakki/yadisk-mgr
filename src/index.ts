@@ -14,3 +14,4 @@ export declare const DiskManagerError: typeof DiskMgrError;
 export declare type Resource = Declarations.Resource;
 export declare type DiskStatus = Declarations.DiskStatus;
 export declare type DirListOptions = Declarations.DirListOptions;
+export declare type ResourceMetadata = Declarations.ResourceMetadata;
