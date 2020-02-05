@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { Stream } from 'stream';
-import { Resource, DiskStatus, DirListOptions, UploadFileOptions } from './DiskInstance';
+import { Resource, DiskStatus, DirListOptions, UploadFileOptions, ResourceMetadata } from './DiskInstance';
 export default class DiskManager {
     private instances;
     constructor(tokenList: string[]);
@@ -11,4 +11,5 @@ export default class DiskManager {
     getFileLink(path: string): Promise<string>;
     uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string>;
     removeFile(path: string): Promise<boolean>;
+    getResourceMetadata(path: string): Promise<ResourceMetadata>;
 }
