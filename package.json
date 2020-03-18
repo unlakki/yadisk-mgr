@@ -2,13 +2,13 @@
   "name": "yadisk-mgr",
   "version": "1.3.9",
   "description": "Yandex disk manager.",
-  "author": "Uwufule",
+  "author": "unlakki",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/uwufule/yadisk-mgr"
+    "url": "https://github.com/unlakki/yadisk-mgr"
   },
-  "homepage": "https://github.com/uwufule/yadisk-mgr#readme",
+  "homepage": "https://github.com/unlakki/yadisk-mgr#readme",
   "keywords": [
     "api",
     "yandex",
