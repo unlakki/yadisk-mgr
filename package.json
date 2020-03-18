@@ -21,7 +21,7 @@
   "typings": "./lib/index.d.ts",
   "private": true,
   "bugs": {
-    "url": "https://github.com/uwufule/yadisk-mgr/issues"
+    "url": "https://github.com/unlakki/yadisk-mgr/issues"
   },
   "dependencies": {
     "bluebird": "^3.5.5",
