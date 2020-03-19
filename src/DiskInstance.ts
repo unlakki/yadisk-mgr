@@ -32,6 +32,10 @@ interface YandexDiskResource {
 
 type YandexDiskResponseItems = YandexDiskResource[] | undefined;
 
+export interface ResourceMetadata {
+  type: ResourceType;
+}
+
 export interface Resource {
   name: string;
   type: ResourceType;
@@ -139,6 +143,11 @@ export default class DiskInstance {
     path: string,
     options: DirListOptions = { offset: 0, limit: 20, sort: SortBy.Created },
   ): Promise<Resource[]> {
+    const metadata = await this.getResourceMetadata(path);
+    if (metadata.type !== ResourceType.Dir) {
+      throw new DiskManagerError('Rosource is not a directory.');
+    }
+
     const fields = [
       'sort',
       ...[
@@ -166,9 +175,9 @@ export default class DiskInstance {
         },
       });
 
-      const items = JSON.parse(res)?._embedded?.items as YandexDiskResponseItems;
+      const items = <YandexDiskResponseItems>JSON.parse(res)?._embedded?.items;
       if (!items) {
-        throw new DiskManagerError('Resource is not a directory.');
+        throw new DiskManagerError('Error while retrieving directory items.');
       }
 
       return items.map(({
@@ -206,6 +215,11 @@ export default class DiskInstance {
   }
 
   public async getFileLink(path: string): Promise<string> {
+    const metadata = await this.getResourceMetadata(path);
+    if (metadata.type === ResourceType.Dir) {
+      throw new DiskManagerError('Could not get link for directory.');
+    }
+
     const query = QueryString.stringify({ path });
     const uri = `${DiskInstance.BASE_API_URL}/resources/download?${query}`;
 
@@ -218,10 +232,6 @@ export default class DiskInstance {
       });
 
       const { href } = JSON.parse(res);
-      if (!href) {
-        throw new DiskManagerError('Unable to get link for disk instance.');
-      }
-
       return href;
     } catch (e) {
       if (e instanceof DiskManagerError) {
@@ -314,6 +324,46 @@ export default class DiskInstance {
             throw new DiskManagerError('Unable to remove disk instance.');
           default:
             throw new DiskManagerError(JSON.parse(e.error).description);
+        }
+      }
+
+      throw new DiskManagerError('Unknown error.');
+    }
+  }
+
+  public async getResourceMetadata(path: string): Promise<ResourceMetadata> {
+    const query = QueryString.stringify({
+      path,
+      fields: 'type',
+    });
+    const uri = `${DiskInstance.BASE_API_URL}/resources?${query}`;
+
+    try {
+      const res = await request(uri, {
+        method: 'GET',
+        headers: {
+          authorization: `OAuth ${this._token}`,
+        },
+      });
+
+      const metadata = <ResourceMetadata>JSON.parse(res);
+      if (!metadata) {
+        throw new DiskManagerError('Error while retrieving metadata for resource.');
+      }
+
+      return metadata;
+    } catch (e) {
+      if (e instanceof DiskManagerError) {
+        throw e;
+      }
+
+      if (e instanceof StatusCodeError) {
+        switch (e.statusCode) {
+          case 401:
+            throw new DiskManagerError('Could not connect to API.');
+          default: {
+            throw new DiskManagerError(JSON.parse(e.error).description);
+          }
         }
       }
 

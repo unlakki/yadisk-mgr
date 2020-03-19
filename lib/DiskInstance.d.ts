@@ -11,6 +11,9 @@ export declare enum ResourceType {
     Dir = "dir",
     File = "file"
 }
+export interface ResourceMetadata {
+    type: ResourceType;
+}
 export interface Resource {
     name: string;
     type: ResourceType;
@@ -46,4 +49,5 @@ export default class DiskInstance {
     getFileLink(path: string): Promise<string>;
     uploadFile(stream: Stream, options?: UploadFileOptions): Promise<string>;
     removeFile(path: string): Promise<boolean>;
+    getResourceMetadata(path: string): Promise<ResourceMetadata>;
 }

@@ -10,6 +10,7 @@ import DiskInstance, {
   DiskStatus,
   DirListOptions,
   UploadFileOptions,
+  ResourceMetadata,
 } from './DiskInstance';
 import DiskManagerError from './errors/DiskManagerError';
 
@@ -73,26 +74,36 @@ export default class DiskManager {
       return rootDirList;
     }
 
-    const [id, ...pathParts] = path.slice(1).split('/');
+    const paths = path.match(/^\/([a-z0-9]+)(.*)$/);
+    if (!paths) {
+      throw new DiskManagerError('Incorrect path provided.');
+    }
 
-    const instance = this.instances.get(id);
+    const instance = this.instances.get(paths[1]);
     if (!instance) {
       throw new DiskManagerError('Disk instance not found.');
     }
 
-    const res = await instance.getDirList(`/${pathParts.join('/')}`, options);
+    const res = await instance.getDirList(paths[2] || '/', options);
     return res;
   }
 
   public async getFileLink(path: string): Promise<string> {
-    const [id, ...pathParts] = path.slice(1).split('/');
+    if (path === '/') {
+      throw new DiskManagerError('Could not get link for disk instance.');
+    }
 
-    const instance = this.instances.get(id);
+    const paths = path.match(/^\/([a-z0-9]+)(.*)$/);
+    if (!paths) {
+      throw new DiskManagerError('Incorrect path provided.');
+    }
+
+    const instance = this.instances.get(paths[1]);
     if (!instance) {
       throw new Error('Disk instance not found.');
     }
 
-    const url = await instance.getFileLink(`/${pathParts.join('/')}`);
+    const url = await instance.getFileLink(paths[2] || '/');
     return url;
   }
 
@@ -125,14 +136,36 @@ export default class DiskManager {
   }
 
   public async removeFile(path: string): Promise<boolean> {
-    const [id, ...pathParts] = path.slice(1).split('/');
+    const paths = path.match(/^\/([a-z0-9]+)(.*)$/);
+    if (!paths) {
+      throw new DiskManagerError('Incorrect path provided.');
+    }
 
-    const instance = this.instances.get(id);
+    const instance = this.instances.get(paths[1]);
     if (!instance) {
       throw new DiskManagerError('Disk instance not found.');
     }
 
-    const res = await instance.removeFile(`/${pathParts.join('/')}`);
+    const res = await instance.removeFile(paths[2] || '/');
+    return res;
+  }
+
+  public async getResourceMetadata(path: string): Promise<ResourceMetadata> {
+    if (path === '/') {
+      throw new DiskManagerError('Could not get metadata for disk instance.');
+    }
+
+    const paths = path.match(/^\/([a-z0-9]+)(.*)$/);
+    if (!paths) {
+      throw new DiskManagerError('Incorrect path provided.');
+    }
+
+    const instance = this.instances.get(paths[1]);
+    if (!instance) {
+      throw new DiskManagerError('Disk instance not found.');
+    }
+
+    const res = await instance.getResourceMetadata(paths[2] || '/');
     return res;
   }
 }
