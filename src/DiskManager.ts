@@ -132,7 +132,7 @@ export default class DiskManager {
     }
 
     const path = await instance.uploadFile(bufferToStream(buffer), options);
-    return path;
+    return `/${id}${path}`;
   }
 
   public async removeFile(path: string): Promise<boolean> {
