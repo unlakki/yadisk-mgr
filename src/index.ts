@@ -6,4 +6,4 @@ export {
   SortBy,
   Resource,
 } from './DiskInstance';
-export { default } from './DiskManager';
+export { default, DiskManager } from './DiskManager';

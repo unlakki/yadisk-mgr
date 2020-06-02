@@ -1,6 +1,6 @@
 {
   "name": "yadisk-mgr",
-  "version": "2.4.11",
+  "version": "2.5.11",
   "description": "Yandex disk manager.",
   "author": "unlakki",
   "license": "MIT",
@@ -15,7 +15,8 @@
     "disk"
   ],
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "prepack": "webpack --production"
   },
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",

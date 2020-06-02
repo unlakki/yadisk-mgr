@@ -1,4 +1,6 @@
-import createDiskInstance, { DiskInstance } from '../DiskInstance';
+import createDiskInstance, {
+  DiskInstance, Status, DirListOptions, Resource, UploadFileOptions,
+} from '../DiskInstance';
 import genId from './utils/genId';
 import getStatus from './methods/getStatus';
 import createDir from './methods/createDir';
@@ -7,7 +9,16 @@ import getFileLink from './methods/getFileLink';
 import uploadFile from './methods/uploadFile';
 import removeResource from './methods/removeResource';
 
-const DiskManager = (tokens: string[]) => {
+export interface DiskManager {
+  getStatus: () => Promise<Status>;
+  createDir: (path: string) => Promise<boolean>;
+  getDirList: (path: string, options?: DirListOptions) => Promise<Resource[]>;
+  getFileLink: (path: string) => Promise<String>;
+  uploadFile: (buffer: Buffer, options?: UploadFileOptions) => Promise<string>;
+  removeResource: (path: string) => Promise<boolean>;
+}
+
+const createDiskManager = (tokens: string[]) => {
   const instances = new Map<string, DiskInstance>(
     tokens.map((token) => ([genId(token), createDiskInstance(token)])),
   );
@@ -22,4 +33,4 @@ const DiskManager = (tokens: string[]) => {
   });
 };
 
-export default DiskManager;
+export default createDiskManager;
