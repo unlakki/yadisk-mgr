@@ -1,6 +1,6 @@
 {
   "name": "yadisk-mgr",
-  "version": "1.4.11",
+  "version": "2.4.11",
   "description": "Yandex disk manager.",
   "author": "unlakki",
   "license": "MIT",
@@ -25,12 +25,12 @@
   },
   "dependencies": {
     "bluebird": "^3.5.5",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "build-url": "^2.0.0",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.27",
-    "@types/request-promise": "^4.1.45",
+    "@types/node-fetch": "^2.5.7",
     "@typescript-eslint/eslint-plugin": "^2.1.0",
     "@typescript-eslint/parser": "^2.1.0",
     "clean-webpack-plugin": "^3.0.0",
