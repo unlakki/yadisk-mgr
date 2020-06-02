@@ -13,7 +13,7 @@ export interface DiskManager {
   getStatus: () => Promise<Status>;
   createDir: (path: string) => Promise<boolean>;
   getDirList: (path: string, options?: DirListOptions) => Promise<Resource[]>;
-  getFileLink: (path: string) => Promise<String>;
+  getFileLink: (path: string) => Promise<string>;
   uploadFile: (buffer: Buffer, options?: UploadFileOptions) => Promise<string>;
   removeResource: (path: string) => Promise<boolean>;
 }

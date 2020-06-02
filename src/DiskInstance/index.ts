@@ -17,7 +17,7 @@ export interface DiskInstance {
   createDir: (path: string) => Promise<boolean>;
   getResourceMetadata: (path: string) => Promise<ResourceMetadata>;
   getDirList: (path: string, options?: DirListOptions) => Promise<Resource[]>;
-  getFileLink: (path: string) => Promise<String>;
+  getFileLink: (path: string) => Promise<string>;
   uploadFile: (buffer: Buffer, options?: UploadFileOptions) => Promise<string>;
   removeResource: (path: string) => Promise<boolean>;
 }
