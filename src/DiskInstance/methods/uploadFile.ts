@@ -1,11 +1,13 @@
 import Crypto from 'crypto';
 import fetch from 'node-fetch';
 import { authorizedFetch } from '../utils/fetch';
+import getResourceMetadata from './getResourceMetadata';
+import createDir from './createDir';
 
 export interface UploadFileOptions {
-  fileName?: string;
-  path?: string;
-  extension?: string;
+  dir?: string;
+  name?: string;
+  ext?: string;
 }
 
 const getUploadTargetUrl = async (path: string, accessToken: string) => {
@@ -19,25 +21,53 @@ const getUploadTargetUrl = async (path: string, accessToken: string) => {
   return res.href;
 };
 
-const getPath = (path?: string) => (
-  path?.replace(/\/$/, '') ?? ''
+const getDir = (dir?: string) => (
+  dir?.replace(/^\/?(.*)/, '$1')
 );
 
-const getFileName = (buffer: Buffer, fileName?: string) => (
-  fileName || Crypto.createHash('sha256').update(buffer).digest('hex')
+const getTimeHash = () => (
+  Crypto.createHash('sha1').update(Date.now().toString()).digest('hex').substr(0, 16)
 );
 
-const getExtension = (extension?: string) => (
- extension?.replace(/^[^.]/, (char) => `.${char}`) ?? ''
+const getFileHash = (file: Buffer) => (
+  Crypto.createHash('sha1').update(file).digest('hex').substr(0, 16)
+);
+
+const getExt = (extension?: string) => (
+ extension?.replace(/\.?(.*)$/, '.$1') ?? ''
 );
 
 const uploadFile = (accessToken: string) => (
   async (buffer: Buffer, options?: UploadFileOptions) => {
-    const path = getPath(options?.path);
-    const fileName = getFileName(buffer, options?.fileName);
-    const ext = getExtension(options?.extension);
+    if (options?.dir === '') {
+      throw new Error('Parameter `dir` cannot be empty.');
+    }
 
-    const pathToSave = `${path}/${fileName}${ext}`;
+    if (options?.name === '') {
+      throw new Error('Parameter `name` cannot be empty.');
+    }
+
+    if (options?.ext === '') {
+      throw new Error('Parameter `ext` cannot be empty.');
+    }
+
+    const hash = getFileHash(buffer);
+
+    const dir = getDir(options?.dir) || hash;
+    const name = options?.name || (options?.dir ? hash : getTimeHash());
+    const ext = getExt(options?.ext);
+
+    try {
+      await getResourceMetadata(accessToken)(dir);
+    } catch (e) {
+      if (!e.message.match(/resource not found/i)) {
+        throw e;
+      }
+
+      await createDir(accessToken)(dir);
+    }
+
+    const pathToSave = `/${dir}/${name}${ext}`;
 
     const uploadTargetUrl = await getUploadTargetUrl(pathToSave, accessToken);
     await fetch(uploadTargetUrl, { method: 'PUT', body: buffer });
