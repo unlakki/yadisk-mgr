@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "webpack",
-    "prepack": "webpack --production"
+    "prepack": "webpack --production",
+    "postpack": "rimraf lib/* && move *.tgz lib/"
   },
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
@@ -39,6 +40,7 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-airbnb-typescript": "^6.3.0",
     "eslint-plugin-import": "^2.18.2",
+    "rimraf": "^3.0.2",
     "terser-webpack-plugin": "^2.3.2",
     "ts-loader": "^6.2.1",
     "typescript": "^3.6.2",
