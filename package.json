@@ -19,8 +19,8 @@
     "prepack": "webpack --production",
     "postpack": "rimraf lib/* && move *.tgz lib/"
   },
-  "main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "private": true,
   "bugs": {
     "url": "https://github.com/unlakki/yadisk-mgr/issues"
