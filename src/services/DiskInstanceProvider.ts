@@ -1,4 +1,4 @@
-import { DiskInstance } from '../DiskInstance';
+import { DiskInstance } from '../instance';
 import IDiskInstanceProvider from './interfaces/IDiskInstanceProvider';
 import InstanceNotFound from '../errors/InstanceNotFound';
 

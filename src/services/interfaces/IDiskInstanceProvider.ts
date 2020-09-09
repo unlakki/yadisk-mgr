@@ -1,4 +1,4 @@
-import { DiskInstance } from '../../DiskInstance';
+import { DiskInstance } from '../../instance';
 
 interface IDiskInstanceProvider {
   set: (key: string, value: DiskInstance) => IDiskInstanceProvider;

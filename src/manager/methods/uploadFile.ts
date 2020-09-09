@@ -1,7 +1,7 @@
 import { posix as Path } from 'path';
 import LeastLoadedInstanceProvider from '../services/LeastLoadedInstanceProvider';
 import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
-import FileUploadOptions from '../../DiskInstance/interfaces/FileUploadOptions';
+import FileUploadOptions from '../../instance/interfaces/FileUploadOptions';
 
 const uploadFile = (instanceProvider: IDiskInstanceProvider) => {
   const leastLoadedInstanceProvider = new LeastLoadedInstanceProvider(instanceProvider);

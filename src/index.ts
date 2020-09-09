@@ -1,10 +1,10 @@
-export { default as ResourceType } from './DiskInstance/enums/ResourceType';
-export { default as SortBy } from './DiskInstance/enums/SortBy';
-export { default as DirListOptions } from './DiskInstance/interfaces/DirListOptions';
-export { default as Resource } from './DiskInstance/interfaces/Resource';
-export { default as ResourceMetadata } from './DiskInstance/interfaces/ResourceMetadata';
-export { default as Status } from './DiskInstance/interfaces/Status';
-export { default as FileUploadOptions } from './DiskInstance/interfaces/FileUploadOptions';
+export { default as ResourceType } from './instance/enums/ResourceType';
+export { default as SortBy } from './instance/enums/SortBy';
+export { default as DirListOptions } from './instance/interfaces/DirListOptions';
+export { default as Resource } from './instance/interfaces/Resource';
+export { default as ResourceMetadata } from './instance/interfaces/ResourceMetadata';
+export { default as Status } from './instance/interfaces/Status';
+export { default as FileUploadOptions } from './instance/interfaces/FileUploadOptions';
 
-export { default as createDiskInstance, DiskInstance } from './DiskInstance';
-export { default, DiskManager } from './DiskManager';
+export { default as createDiskInstance, DiskInstance } from './instance';
+export { default, DiskManager } from './manager';
