@@ -4,7 +4,7 @@ module.exports = {
     node: true,
   },
   extends: [
-    'airbnb-typescript/base',
+    'airbnb-typescript/base', 'prettier'
   ],
   globals: {
     Atomics: 'readonly',
@@ -16,9 +16,11 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: [
-    '@typescript-eslint',
+    'prettier', '@typescript-eslint',
   ],
   rules: {
-    'no-underscore-dangle': ['error', { allowAfterThis: true }],
+    'no-underscore-dangle': ['error', {
+      allowAfterThis: true
+    }],
   },
 };
