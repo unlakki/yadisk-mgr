@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "ES6",
+    "module": "CommonJS",
     "outDir": "lib",
-    "noImplicitAny": true,
-    "strictNullChecks": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "declaration": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "include": [
     "src/**/*.ts"
