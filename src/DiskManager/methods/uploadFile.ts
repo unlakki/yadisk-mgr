@@ -1,42 +1,22 @@
-import Bluebird from 'bluebird';
-import { DiskInstance, UploadFileOptions } from '../../DiskInstance';
-import genId from '../utils/genId';
-import getInstance from '../utils/getInstance';
+import { posix as Path } from 'path';
+import LeastLoadedInstanceProvider from '../services/LeastLoadedInstanceProvider';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
+import FileUploadOptions from '../../DiskInstance/interfaces/FileUploadOptions';
 
-const getFreeSpaceList = (instances: Map<string, DiskInstance>) => (
-  Bluebird.all(
-    Array.from(
-      instances.values(),
-    ).map(
-      async (instance) => {
-        const { totalSpace, usedSpace } = await instance.getStatus();
+const uploadFile = (instanceProvider: IDiskInstanceProvider) => {
+  const leastLoadedInstanceProvider = new LeastLoadedInstanceProvider(instanceProvider);
 
-        return {
-          id: genId(instance.token),
-          freeSpace: totalSpace - usedSpace,
-        };
-      },
-    ),
-  )
-);
+  return async (buffer: Buffer, options?: FileUploadOptions) => {
+    const leastLoadedInstance = await leastLoadedInstanceProvider.get();
 
-const uploadFile = (instances: Map<string, DiskInstance>) => (
-  async (buffer: Buffer, options?: UploadFileOptions) => {
-    const freeSpaceList = await getFreeSpaceList(instances);
-
-    const { id, freeSpace } = freeSpaceList.sort(
-      (a, b) => b.freeSpace - a.freeSpace,
-    )[0];
-
-    if (buffer.length > freeSpace) {
+    if (!leastLoadedInstanceProvider.hasEnoughSpace(buffer.length)) {
       throw new Error('Not enough free space.');
     }
 
-    const instance = getInstance(instances)(id);
-    const path = await instance.uploadFile(buffer, options);
+    const savePath = await leastLoadedInstance.uploadFile(buffer, options);
 
-    return `/${id}${path}`;
-  }
-);
+    return Path.join('/', leastLoadedInstance.id, savePath);
+  };
+};
 
 export default uploadFile;

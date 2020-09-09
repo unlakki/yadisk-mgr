@@ -1,21 +1,19 @@
 import Bluebird from 'bluebird';
-import { DiskInstance, Status } from '../../DiskInstance';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
+import { DiskInstance } from '../../DiskInstance';
+import Status from '../../DiskInstance/interfaces/Status';
 
-const getStatus = (instances: Map<string, DiskInstance>) => (
-  async () => {
-    const promises = await Bluebird.all(
-      Array.from(
-        instances.values(),
-      ).map(
-        (instance) => instance.getStatus(),
-      ),
-    );
-
-    return promises.reduce<Status>((acc, status) => ({
-      totalSpace: acc.totalSpace + status.totalSpace,
-      usedSpace: acc.usedSpace + status.usedSpace,
-    }), { totalSpace: 0, usedSpace: 0 });
-  }
-);
+const getStatus = (istanceProvider: IDiskInstanceProvider) => async () =>
+  Bluebird.reduce<DiskInstance, Status>(
+    Array.from(istanceProvider.items()),
+    async ({ totalSpace, usedSpace }, instance) => {
+      const status = await instance.getStatus();
+      return {
+        totalSpace: totalSpace + status.totalSpace,
+        usedSpace: usedSpace + status.usedSpace,
+      };
+    },
+    { totalSpace: 0, usedSpace: 0 },
+  );
 
 export default getStatus;

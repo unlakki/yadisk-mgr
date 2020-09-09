@@ -1,24 +1,24 @@
-import { authorizedFetch } from '../utils/fetch';
+import IFetchProvider from '../../services/interfaces/IFetchProvider';
+import IJsonParser from '../../services/interfaces/IJsonParser';
+import ResourceMetadata from '../interfaces/ResourceMetadata';
 
-export enum ResourceType {
-  Dir = 'dir',
-  File = 'file',
+export interface GetResourceMetadata {
+  (path: string): Promise<ResourceMetadata>;
 }
 
-export interface ResourceMetadata {
-  type: ResourceType;
-}
+const fields = ['type'];
 
-const getResourceMetadata = (accessToken: string) => (
-  async (path: string) => {
-    const res = await authorizedFetch<ResourceMetadata>('/resources', accessToken, {
-      queryParams: {
-        path,
-      },
-    });
+const getResourceMetadata = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): GetResourceMetadata => async (
+  path: string,
+) => {
+  const res = await fetchProvider.fetch('/resources', {
+    queryParams: {
+      path,
+      fields,
+    },
+  });
 
-    return res;
-  }
-);
+  return jsonParser.parse<ResourceMetadata>(res);
+};
 
 export default getResourceMetadata;

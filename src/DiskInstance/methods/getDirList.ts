@@ -1,89 +1,44 @@
-import { authorizedFetch } from '../utils/fetch';
-import getResourceMetadata, { ResourceType } from './getResourceMetadata';
+import IFetchProvider from '../../services/interfaces/IFetchProvider';
+import IJsonParser from '../../services/interfaces/IJsonParser';
+import ResourceType from '../enums/ResourceType';
+import DirList from '../interfaces/DirList';
+import DirListOptions from '../interfaces/DirListOptions';
+import Resource from '../interfaces/Resource';
+import transformItems from '../utils/transformItems';
+import getResourceMetadata from './getResourceMetadata';
 
-export enum SortBy {
-  Name = 'name',
-  Path = 'path',
-  Created = 'created',
-  Modified = 'modified',
-  Size = 'size',
+export interface GetDirList {
+  (path: string, options?: DirListOptions): Promise<Resource[]>;
 }
 
-interface RawResource {
-  name: string;
-  type: ResourceType;
-  media_type?: string;
-  size?: number;
-  created: string;
-  modified: string;
-}
+const fields = [
+  '_embedded.items.name',
+  '_embedded.items.size',
+  '_embedded.items.type',
+  '_embedded.items.media_type',
+  '_embedded.items.created',
+  '_embedded.items.modified',
+  '_embedded.sort',
+];
 
-interface YandexDiskResponse {
-  _embedded: {
-    sort: string;
-    items: RawResource[];
-  };
-}
-
-export interface Resource {
-  name: string;
-  type: ResourceType;
-  mediaType?: string;
-  size?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface DirListOptions {
-  offset?: number;
-  limit?: number;
-  sort?: SortBy;
-}
-
-const getFields = () => [
-  'sort',
-  ...[
-    'name',
-    'size',
-    'type',
-    'media_type',
-    'created',
-    'modified',
-  ].map((field) => `items.${field}`),
-].map((field) => `_embedded.${field}`).join(',');
-
-const getOptions = (options: DirListOptions) => Object.entries(options).reduce(
-  (acc, val) => ({ ...acc, [val[0]]: String(val[1]) }),
-  {},
-);
-
-const transformItems = (items: RawResource[]): Resource[] => items.map(({
-  created, modified, media_type: mediaType, ...item
-}) => ({
-  ...item,
-  createdAt: new Date(created),
-  updatedAt: new Date(modified),
-  mediaType,
-}));
-
-const getDirList = (accessToken: string) => (
-  async (path: string, options?: DirListOptions) => {
-    const matadata = await getResourceMetadata(accessToken)(path);
-    if (matadata.type !== ResourceType.Dir) {
-      throw new TypeError('Invalid resource type.');
-    }
-
-    const fields = getFields();
-    const opts = options && getOptions(options);
-
-    const res = await authorizedFetch<YandexDiskResponse>('/resources', accessToken, {
-      queryParams: {
-        path, fields, ...opts,
-      },
-    });
-
-    return transformItems(res._embedded.items); // eslint-disable-line no-underscore-dangle
+const getDirList = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): GetDirList => async (
+  path: string,
+  options?: DirListOptions,
+) => {
+  const resource = await getResourceMetadata(fetchProvider, jsonParser)(path);
+  if (resource.type !== ResourceType.Dir) {
+    throw new TypeError('Invalid resource type.');
   }
-);
+
+  const res = await fetchProvider.fetch('/resources', {
+    queryParams: {
+      path,
+      ...(<any>options),
+      fields,
+    },
+  });
+
+  return transformItems(jsonParser.parse<DirList>(res)._embedded.items); // eslint-disable-line no-underscore-dangle
+};
 
 export default getDirList;

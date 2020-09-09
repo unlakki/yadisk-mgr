@@ -1,36 +1,39 @@
-import getStatus, { Status } from './methods/getStatus';
-import createDir from './methods/createDir';
-import getResourceMetadata, { ResourceMetadata } from './methods/getResourceMetadata';
-import getDirList, { DirListOptions, Resource } from './methods/getDirList';
-import getFileLink from './methods/getFileLink';
-import uploadFile, { UploadFileOptions } from './methods/uploadFile';
-import removeResource from './methods/removeResource';
-
-export { Status } from './methods/getStatus';
-export { ResourceType, ResourceMetadata } from './methods/getResourceMetadata';
-export { SortBy, Resource, DirListOptions } from './methods/getDirList';
-export { UploadFileOptions } from './methods/uploadFile';
+import FetchProvider from '../services/FetchProvider';
+import JsonParser from '../services/JsonParser';
+import getStatus, { GetStatus } from './methods/getStatus';
+import createDir, { CreateDir } from './methods/createDir';
+import getResourceMetadata, { GetResourceMetadata } from './methods/getResourceMetadata';
+import getDirList, { GetDirList } from './methods/getDirList';
+import getFileLink, { GetFileLink } from './methods/getFileLink';
+import uploadFile, { UploadFile } from './methods/uploadFile';
+import deleteResource, { DeleteResource } from './methods/deleteResource';
+import genId from './utils/genId';
 
 export interface DiskInstance {
-  token: string;
-  getStatus: () => Promise<Status>;
-  createDir: (path: string) => Promise<boolean>;
-  getResourceMetadata: (path: string) => Promise<ResourceMetadata>;
-  getDirList: (path: string, options?: DirListOptions) => Promise<Resource[]>;
-  getFileLink: (path: string) => Promise<string>;
-  uploadFile: (buffer: Buffer, options?: UploadFileOptions) => Promise<string>;
-  removeResource: (path: string) => Promise<boolean>;
+  id: string;
+  getStatus: GetStatus;
+  createDir: CreateDir;
+  getResourceMetadata: GetResourceMetadata;
+  getDirList: GetDirList;
+  getFileLink: GetFileLink;
+  uploadFile: UploadFile;
+  deleteResource: DeleteResource;
 }
 
-const createDiskInstance = (accessToken: string): DiskInstance => ({
-  token: accessToken,
-  getStatus: getStatus(accessToken),
-  createDir: createDir(accessToken),
-  getResourceMetadata: getResourceMetadata(accessToken),
-  getDirList: getDirList(accessToken),
-  getFileLink: getFileLink(accessToken),
-  uploadFile: uploadFile(accessToken),
-  removeResource: removeResource(accessToken),
-});
+const createDiskInstance = (accessToken: string): DiskInstance => {
+  const fetchProvider = new FetchProvider(accessToken);
+  const jsonParser = new JsonParser();
+
+  return {
+    id: genId(accessToken),
+    getStatus: getStatus(fetchProvider, jsonParser),
+    createDir: createDir(fetchProvider),
+    getResourceMetadata: getResourceMetadata(fetchProvider, jsonParser),
+    getDirList: getDirList(fetchProvider, jsonParser),
+    getFileLink: getFileLink(fetchProvider, jsonParser),
+    uploadFile: uploadFile(fetchProvider, jsonParser),
+    deleteResource: deleteResource(fetchProvider),
+  };
+};
 
 export default createDiskInstance;

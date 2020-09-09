@@ -1,42 +1,20 @@
-import Bluebird from 'bluebird';
-import {
-  DiskInstance, DirListOptions, ResourceType, Resource,
-} from '../../DiskInstance';
-import genId from '../utils/genId';
-import getInstance from '../utils/getInstance';
+import { posix as Path } from 'path';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
+import DirListOptions from '../../DiskInstance/interfaces/DirListOptions';
+import getRootDirList from '../utils/getRootDirList';
 
-const getRootDirList = (instances: Map<string, DiskInstance>): Bluebird<Resource[]> => (
-  Bluebird.all(
-    Array.from(
-      instances.values(),
-    ).map(
-      (async (instance) => {
-        const { usedSpace: size } = await instance.getStatus();
-
-        return {
-          name: genId(instance.token),
-          type: ResourceType.Dir,
-          size,
-        };
-      }),
-    ),
-  )
-);
-
-const getDirList = (instances: Map<string, DiskInstance>) => (
-  async (path: string, options?: DirListOptions) => {
-    if (path === '/') {
-      const rootDirList = await getRootDirList(instances);
-      return rootDirList;
-    }
-
-    const [instanceId, pathToDir = '/'] = path.slice(1).split('/');
-
-    const instance = getInstance(instances)(instanceId);
-    const result = await instance.getDirList(pathToDir, options);
-
-    return result;
+const getDirList = (instanceProvider: IDiskInstanceProvider) => async (path: string, options?: DirListOptions) => {
+  if (path === '/') {
+    const rootDirList = await getRootDirList(instanceProvider);
+    return rootDirList;
   }
-);
+
+  const [id, ...pathParts] = path.slice(1).split('/');
+
+  const instance = instanceProvider.get(id);
+  const dirList = await instance.getDirList(Path.join('/', ...pathParts), options);
+
+  return dirList;
+};
 
 export default getDirList;

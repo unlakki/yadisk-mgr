@@ -1,18 +1,16 @@
-import { DiskInstance } from '../../DiskInstance';
-import getInstance from '../utils/getInstance';
+import { posix as Path } from 'path';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
-const createDir = (instaces: Map<string, DiskInstance>) => (
-  async (path: string) => {
-    const [instanceId, ...pathToDir] = path.slice(1).split('/');
-    if (!pathToDir) {
-      throw new Error('Invalid path.');
-    }
-
-    const instance = getInstance(instaces)(instanceId);
-    await instance.createDir(`/${pathToDir.join('/')}`);
-
-    return true;
+const createDir = (instaceProvider: IDiskInstanceProvider) => async (path: string) => {
+  const [id, ...pathParts] = path.slice(1).split('/');
+  if (!pathParts.length) {
+    throw new Error('Access denied.');
   }
-);
+
+  const instance = instaceProvider.get(id);
+  await instance.createDir(Path.join('/', ...pathParts));
+
+  return true;
+};
 
 export default createDir;

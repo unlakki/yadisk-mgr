@@ -1,18 +1,19 @@
 import IFetchProvider from '../../services/interfaces/IFetchProvider';
 
-export interface CreateDir {
+export interface DeleteResource {
   (path: string): Promise<boolean>;
 }
 
-const createDir = (fetchProvider: IFetchProvider): CreateDir => async (path: string) => {
+const deleteResource = (fetchProvider: IFetchProvider) => async (path: string) => {
   await fetchProvider.fetch('/resources', {
-    method: 'PUT',
+    method: 'DELETE',
     queryParams: {
       path,
+      permanently: true.toString(),
     },
   });
 
   return true;
 };
 
-export default createDir;
+export default deleteResource;
