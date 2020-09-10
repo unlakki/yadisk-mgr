@@ -9,7 +9,8 @@ const uploadFile = (instanceProvider: IDiskInstanceProvider) => {
   return async (buffer: Buffer, options?: FileUploadOptions) => {
     const leastLoadedInstance = await leastLoadedInstanceProvider.get();
 
-    if (!leastLoadedInstanceProvider.hasEnoughSpace(buffer.length)) {
+    const hasEnoughSpace = await leastLoadedInstanceProvider.hasEnoughSpace(buffer.length);
+    if (!hasEnoughSpace) {
       throw new Error('Not enough free space.');
     }
 
