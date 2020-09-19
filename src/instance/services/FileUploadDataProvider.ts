@@ -23,7 +23,7 @@ class FileUploadDataProvider {
   }
 
   public get savePath() {
-    return Path.format({ dir: Path.join('/', this._dir), name: this._name, ext: this._ext });
+    return Path.join('/', this._dir, Path.format({ name: this._name, ext: this._ext }));
   }
 
   public get dir() {
