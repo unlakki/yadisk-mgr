@@ -9,7 +9,7 @@ const deleteResource = (fetchProvider: IFetchProvider) => async (path: string) =
     method: 'DELETE',
     queryParams: {
       path,
-      permanently: true.toString(),
+      permanently: 'true',
     },
   });
 
