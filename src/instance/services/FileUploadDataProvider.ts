@@ -1,7 +1,7 @@
 import { posix as Path } from 'path';
 import IFileHashProvider from './interfaces/IFileHashProvider';
 import ITimeHashProvider from './interfaces/ITimeHashProvider';
-import addLeadingChar from '../../extensions/addLeadingChar';
+import StringExtensions from '../../extensions/StringExtensions';
 
 class FileUploadDataProvider {
   private readonly _fileHashProvider: IFileHashProvider;
@@ -48,7 +48,7 @@ class FileUploadDataProvider {
   }
 
   public set ext(ext: string) {
-    this._ext = addLeadingChar(ext, '.');
+    this._ext = StringExtensions.addLeadingChar(ext, '.');
   }
 }
 
