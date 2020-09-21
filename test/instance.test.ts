@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { before } from 'mocha';
+import BadResourceType from '../src/errors/BadResourceType';
+import DiskError from '../src/errors/DiskError';
 import createDiskInstance from '../src/instance';
 import ResourceType from '../src/instance/enums/ResourceType';
 
@@ -18,37 +19,47 @@ describe('instance', () => {
   });
 
   describe('createDir', () => {
-    it('should return true if directory sucessfully created', async () => {
-      before(async () => {
-        await instance.deleteResource('/test');
-      });
+    afterEach(async () => {
+      await instance.deleteResource('/i.createDir.test-dir');
+    });
 
-      after(async () => {
-        await instance.deleteResource('/test');
-      });
-
-      const res = await instance.createDir('/test');
+    it('should return true if dir sucessfully created', async () => {
+      const res = await instance.createDir('/i.createDir.test-dir');
       expect(res).to.eq(true);
+    });
+
+    describe('dir already exists', () => {
+      before(async () => {
+        await instance.createDir('/i.createDir.test-dir');
+      });
+
+      it('should throw DiskError error if dir already exists', async () => {
+        try {
+          await instance.createDir('/i.createDir.test-dir');
+        } catch (e) {
+          expect(e).instanceOf(DiskError);
+        }
+      });
     });
   });
 
   describe('getResourceMetadata', async () => {
-    it('should return corrent type if successfully reterieved resource metadata', async () => {
+    it('should return correct type if successfully reterieved metadata for dir', async () => {
       const res = await instance.getResourceMetadata('/');
       expect(res.type).to.eq(ResourceType.Dir);
     });
 
-    describe('file metadata', () => {
+    describe('file', () => {
       before(async () => {
-        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'test-file' });
+        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.getResourceMetadata.test-file' });
       });
 
       after(async () => {
-        await instance.deleteResource('/test-file');
+        await instance.deleteResource('/i.getResourceMetadata.test-file');
       });
 
-      it('should return correct type if successfully reterieved resource metadata', async () => {
-        const res = await instance.getResourceMetadata('/test-file');
+      it('should return correct type if successfully reterieved metadata for file', async () => {
+        const res = await instance.getResourceMetadata('/i.getResourceMetadata.test-file');
         expect(res.type).to.eq(ResourceType.File);
       });
     });
@@ -62,94 +73,130 @@ describe('instance', () => {
 
     describe('file', () => {
       before(async () => {
-        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'test-file' });
+        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.getDirList.test-file' });
       });
 
       after(async () => {
-        await instance.deleteResource('/test-file');
+        await instance.deleteResource('/i.getDirList.test-file');
       });
 
-      it('should return undefined if trying to get dir list in file', async () => {
+      it('should return BadResourceType error if trying to get dir list of file', async () => {
         try {
-          await instance.getDirList('/test-file');
+          await instance.getDirList('/i.getDirList.test-file');
         } catch (e) {
-          expect(e.message).to.eq('Invalid resource type.');
+          expect(e).instanceOf(BadResourceType);
         }
       });
     });
   });
 
   describe('getFileLink', () => {
-    before(async () => {
-      await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'test-file' });
+    describe('dir', () => {
+      it('should throw BadResourceType error if trying to get link to dir', async () => {
+        try {
+          await instance.getFileLink('/');
+        } catch (e) {
+          expect(e).instanceOf(BadResourceType);
+        }
+      });
     });
 
-    after(async () => {
-      await instance.deleteResource('/test-file');
-    });
+    describe('file', () => {
+      before(async () => {
+        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.getFileLink.test-file' });
+      });
 
-    it('should return link to file if successfully retrieved', async () => {
-      const res = await instance.getFileLink('/test-file');
-      expect(res).to.be.a('string');
+      after(async () => {
+        await instance.deleteResource('/i.getFileLink.test-file');
+      });
+
+      it('should return link to file if successfully retrieved', async () => {
+        const res = await instance.getFileLink('/i.getFileLink.test-file');
+        expect(res).to.be.a('string');
+      });
     });
   });
 
   describe('uploadFile', () => {
-    afterEach(async () => {
-      try {
+    describe('without options', () => {
+      after(async () => {
         await instance.deleteResource('/5ba93');
-      } catch (e) {} // eslint-disable-line no-empty
-      try {
-        await instance.deleteResource('/test-dir');
-      } catch (e) {} // eslint-disable-line no-empty
+      });
+
+      it('should return path to file if successfully uploaded file', async () => {
+        const res = await instance.uploadFile(Buffer.alloc(1));
+        expect(res).to.be.a('string');
+      });
     });
 
-    it('should return path to file if successfully uploaded file', async () => {
-      const res = await instance.uploadFile(Buffer.alloc(1));
-      expect(res).to.be.a('string');
+    describe('with name option', () => {
+      after(async () => {
+        await instance.deleteResource('/5ba93');
+      });
+
+      it('should return path to file if successfully uploaded file', async () => {
+        const res = await instance.uploadFile(Buffer.alloc(1), { name: 'i.uploadFile.test-file' });
+        expect(res)
+          .to.be.a('string')
+          .and.match(/\/[a-z0-9]+\/i\.uploadFile\.test-file/);
+      });
     });
 
-    it('should return path to file with providerd filename if successfully uploaded file', async () => {
-      const res = await instance.uploadFile(Buffer.alloc(1), { name: 'test-file' });
-      expect(res)
-        .to.be.a('string')
-        .and.match(/\/[a-z0-9]+\/test-file/);
+    describe('with ext option', () => {
+      after(async () => {
+        await instance.deleteResource('/5ba93');
+      });
+
+      it('should return path to file if successfully uploaded file', async () => {
+        const res = await instance.uploadFile(Buffer.alloc(1), { ext: 'bin' });
+        expect(res)
+          .to.be.a('string')
+          .and.match(/\/[a-z0-9]{5}\/[a-z0-9]{40}\.bin/);
+      });
     });
 
-    it('should return path to file with provided file extension if successfully uploaded file', async () => {
-      const res = await instance.uploadFile(Buffer.alloc(1), { ext: 'bin' });
-      expect(res)
-        .to.be.a('string')
-        .and.match(/\/[a-z0-9]+\/[a-z0-9]+\.bin/);
-    });
+    describe('with dir option', () => {
+      after(async () => {
+        await instance.deleteResource('/i.uploadFile.test-dir');
+      });
 
-    it('should return path to file with provided root path if successfully uploaded file', async () => {
-      const res = await instance.uploadFile(Buffer.alloc(1), { dir: '/test-dir' });
-      expect(res)
-        .to.be.a('string')
-        .and.match(/\/test-dir\/[a-z0-9]+/);
+      it('should return path to file with provided root path if successfully uploaded file', async () => {
+        const res = await instance.uploadFile(Buffer.alloc(1), { dir: '/i.uploadFile.test-dir' });
+        expect(res)
+          .to.be.a('string')
+          .and.match(/\/i\.uploadFile\.test-dir\/[a-z0-9]{40}/);
+      });
     });
   });
 
   describe('deleteResource', () => {
+    it('should throw DiskError if resource doesnt exists', async () => {
+      try {
+        await instance.deleteResource('/i.deleteResource.nonexistent-resource');
+      } catch (e) {
+        expect(e).instanceOf(DiskError);
+        expect(e.message).to.eq('Resource not found');
+      }
+    });
+
     describe('dir', () => {
       before(async () => {
-        await instance.createDir('/test-dir');
+        await instance.createDir('/i.deleteResource.test-dir');
       });
 
-      it('should return true if resource sucessfully deleted', async () => {
-        const res = await instance.deleteResource('/test-dir');
+      it('should return true if sucessfully deleted', async () => {
+        const res = await instance.deleteResource('/i.deleteResource.test-dir');
         expect(res).to.eq(true);
       });
     });
 
     describe('file', () => {
       before(async () => {
-        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'test-file' });
+        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.deleteResource.test-file' });
       });
 
-      it('should return true if resource sucessfully deleted', async () => {
-        const res = await instance.deleteResource('/test-file');
+      it('should return true if sucessfully deleted', async () => {
+        const res = await instance.deleteResource('/i.deleteResource.test-file');
         expect(res).to.eq(true);
       });
     });
