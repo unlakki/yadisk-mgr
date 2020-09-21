@@ -1,7 +1,7 @@
 import fetch, { HeadersInit } from 'node-fetch';
 import buildUrl from 'build-url';
-import IFetchProvider from './interfaces/IFetchProvider';
 import FetchInit from './interfaces/FetchInit';
+import IFetchProvider from './interfaces/IFetchProvider';
 import QueryParams from './interfaces/QueryParams';
 
 class FetchProvider implements IFetchProvider {

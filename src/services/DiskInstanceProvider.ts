@@ -1,6 +1,6 @@
-import { DiskInstance } from '../instance';
 import IDiskInstanceProvider from './interfaces/IDiskInstanceProvider';
 import InstanceNotFound from '../errors/InstanceNotFound';
+import { DiskInstance } from '../instance';
 
 class DiskInstanceProvider extends Map<string, DiskInstance> implements IDiskInstanceProvider {
   public get = (key: string) => {
