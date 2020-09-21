@@ -1,7 +1,8 @@
 import IUploadTargetProvider from './interfaces/IUploadTargetProvider';
+import FileLink from '../interfaces/FileLink';
+import DiskError from '../../errors/DiskError';
 import IFetchProvider from '../../services/interfaces/IFetchProvider';
 import IJsonParser from '../../services/interfaces/IJsonParser';
-import FileLink from '../interfaces/FileLink';
 
 class UploadTargetProvider implements IUploadTargetProvider {
   private readonly _fetchProvider: IFetchProvider;
@@ -14,14 +15,18 @@ class UploadTargetProvider implements IUploadTargetProvider {
   }
 
   public getUri = async (savePath: string) => {
-    const res = await this._fetchProvider.fetch('/resources/upload', {
-      method: 'GET',
-      queryParams: {
-        path: savePath,
-      },
-    });
+    try {
+      const res = await this._fetchProvider.fetch('/resources/upload', {
+        method: 'GET',
+        queryParams: {
+          path: savePath,
+        },
+      });
 
-    return this._jsonParser.parse<FileLink>(res).href;
+      return this._jsonParser.parse<FileLink>(res).href;
+    } catch (e) {
+      throw new DiskError('Error while getting upload target uri');
+    }
   };
 }
 
