@@ -1,8 +1,8 @@
-import BaseError from './BaseError';
+import DiskError from './DiskError';
 
-class InstanceNotFound extends BaseError {
+class InstanceNotFound extends DiskError {
   constructor(instanceId: string) {
-    super(`Instance ${instanceId} not found.`);
+    super(`Instance with id ${instanceId} not found`);
   }
 }
 
