@@ -1,12 +1,13 @@
 import fetch from 'node-fetch';
-import IFetchProvider from '../../services/interfaces/IFetchProvider';
-import IJsonParser from '../../services/interfaces/IJsonParser';
 import FileUploadOptions from '../interfaces/FileUploadOptions';
-import TimeHashProvider from '../services/TimeHashProvider';
 import FileHashProvider from '../services/FileHashProvider';
 import FileUploadDataProvider from '../services/FileUploadDataProvider';
+import TimeHashProvider from '../services/TimeHashProvider';
 import UploadTargetProvider from '../services/UploadTargetProvider';
 import createNestedDirectories from '../utils/createNestedDirectories';
+import IFetchProvider from '../../services/interfaces/IFetchProvider';
+import IJsonParser from '../../services/interfaces/IJsonParser';
+import useHandleFetchError from '../../utils/useHandleFetchError';
 
 export interface UploadFile {
   (buffer: Buffer, options?: FileUploadOptions): Promise<string>;
@@ -14,6 +15,8 @@ export interface UploadFile {
 
 const uploadFile = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): UploadFile => {
   const uploadTargetProvider = new UploadTargetProvider(fetchProvider, jsonParser);
+
+  const handleFetchError = useHandleFetchError(jsonParser);
 
   return async (buffer: Buffer, opts?: FileUploadOptions) => {
     const fileHashProvider = new FileHashProvider(buffer);
@@ -35,7 +38,8 @@ const uploadFile = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): Upl
     const { savePath } = fileUploadDataProvider;
 
     const uploadUri = await uploadTargetProvider.getUri(savePath);
-    await fetch(uploadUri, { method: 'PUT', body: buffer });
+
+    await handleFetchError(() => fetch(uploadUri, { method: 'PUT', body: buffer }));
 
     return savePath;
   };

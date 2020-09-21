@@ -1,11 +1,13 @@
-import IFetchProvider from '../../services/interfaces/IFetchProvider';
-import IJsonParser from '../../services/interfaces/IJsonParser';
+import constructGetResourceMetadata from './getResourceMetadata';
 import ResourceType from '../enums/ResourceType';
 import DirList from '../interfaces/DirList';
 import DirListOptions from '../interfaces/DirListOptions';
 import Resource from '../interfaces/Resource';
+import BadResourceType from '../../errors/BadResourceType';
+import IFetchProvider from '../../services/interfaces/IFetchProvider';
+import IJsonParser from '../../services/interfaces/IJsonParser';
 import transformItems from '../utils/transformItems';
-import getResourceMetadata from './getResourceMetadata';
+import useHandleFetchError from '../../utils/useHandleFetchError';
 
 export interface GetDirList {
   (path: string, options?: DirListOptions): Promise<Resource[]>;
@@ -21,24 +23,22 @@ const fields = [
   '_embedded.sort',
 ];
 
-const getDirList = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): GetDirList => async (
-  path: string,
-  options?: DirListOptions,
-) => {
-  const resource = await getResourceMetadata(fetchProvider, jsonParser)(path);
-  if (resource.type !== ResourceType.Dir) {
-    throw new TypeError('Invalid resource type.');
-  }
+const getDirList = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): GetDirList => {
+  const getResourceMetadata = constructGetResourceMetadata(fetchProvider, jsonParser);
+  const handleFetchError = useHandleFetchError(jsonParser);
 
-  const res = await fetchProvider.fetch('/resources', {
-    queryParams: {
-      path,
-      ...(<any>options),
-      fields,
-    },
-  });
+  return async (path: string, options?: DirListOptions) => {
+    const { type } = await getResourceMetadata(path);
+    if (type !== ResourceType.Dir) {
+      throw new BadResourceType(type);
+    }
 
-  return transformItems(jsonParser.parse<DirList>(res)._embedded.items); // eslint-disable-line no-underscore-dangle
+    const res = await handleFetchError(() =>
+      fetchProvider.fetch('/resources', { queryParams: { path, ...(<any>options), fields } }),
+    );
+
+    return transformItems(jsonParser.parse<DirList>(res)._embedded.items); // eslint-disable-line no-underscore-dangle
+  };
 };
 
 export default getDirList;

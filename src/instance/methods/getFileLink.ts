@@ -1,26 +1,29 @@
-import IFetchProvider from '../../services/interfaces/IFetchProvider';
-import IJsonParser from '../../services/interfaces/IJsonParser';
+import constructGetResourceMetadata from './getResourceMetadata';
 import ResourceType from '../enums/ResourceType';
 import FileLink from '../interfaces/FileLink';
-import getResourceMetadata from './getResourceMetadata';
+import BadResourceType from '../../errors/BadResourceType';
+import IFetchProvider from '../../services/interfaces/IFetchProvider';
+import IJsonParser from '../../services/interfaces/IJsonParser';
+import useHandleFetchError from '../../utils/useHandleFetchError';
 
 export interface GetFileLink {
   (path: string): Promise<string>;
 }
 
-const getFileLink = (fetchProvider: IFetchProvider, jsonParser: IJsonParser) => async (path: string) => {
-  const metadata = await getResourceMetadata(fetchProvider, jsonParser)(path);
-  if (metadata.type !== ResourceType.File) {
-    throw new TypeError('Invalid resource type.');
-  }
+const getFileLink = (fetchProvider: IFetchProvider, jsonParser: IJsonParser) => {
+  const getResourceMetadata = constructGetResourceMetadata(fetchProvider, jsonParser);
+  const handleHetchError = useHandleFetchError(jsonParser);
 
-  const res = await fetchProvider.fetch('/resources/download', {
-    queryParams: {
-      path,
-    },
-  });
+  return async (path: string) => {
+    const { type } = await getResourceMetadata(path);
+    if (type !== ResourceType.File) {
+      throw new BadResourceType(type);
+    }
 
-  return jsonParser.parse<FileLink>(res).href;
+    const res = await handleHetchError(() => fetchProvider.fetch('/resources/download', { queryParams: { path } }));
+
+    return jsonParser.parse<FileLink>(res).href;
+  };
 };
 
 export default getFileLink;
