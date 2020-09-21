@@ -1,18 +1,18 @@
-import createDiskInstance from '../instance';
-import { GetStatus } from '../instance/methods/getStatus';
-import { CreateDir } from '../instance/methods/createDir';
-import { GetDirList } from '../instance/methods/getDirList';
-import { GetFileLink } from '../instance/methods/getFileLink';
-import { UploadFile } from '../instance/methods/uploadFile';
-import { DeleteResource } from '../instance/methods/deleteResource';
-import genId from '../instance/utils/genId';
-import DiskInstanceProvider from '../services/DiskInstanceProvider';
-import getStatus from './methods/getStatus';
 import createDir from './methods/createDir';
+import deleteResource from './methods/deleteResource';
 import getDirList from './methods/getDirList';
 import getFileLink from './methods/getFileLink';
+import getStatus from './methods/getStatus';
 import uploadFile from './methods/uploadFile';
-import deleteResource from './methods/deleteResource';
+import createDiskInstance from '../instance';
+import { CreateDir } from '../instance/methods/createDir';
+import { DeleteResource } from '../instance/methods/deleteResource';
+import { GetDirList } from '../instance/methods/getDirList';
+import { GetFileLink } from '../instance/methods/getFileLink';
+import { GetStatus } from '../instance/methods/getStatus';
+import { UploadFile } from '../instance/methods/uploadFile';
+import InstanceIdGenerator from '../instance/services/InstanceIdGenerator';
+import DiskInstanceProvider from '../services/DiskInstanceProvider';
 
 export interface DiskManager {
   getStatus: GetStatus;
@@ -24,7 +24,9 @@ export interface DiskManager {
 }
 
 const createDiskManager = (...tokens: string[]): DiskManager => {
-  const instanceProvider = new DiskInstanceProvider(tokens.map((token) => [genId(token), createDiskInstance(token)]));
+  const instanceProvider = new DiskInstanceProvider(
+    tokens.map((token) => [InstanceIdGenerator.generate(token), createDiskInstance(token)]),
+  );
 
   return {
     getStatus: getStatus(instanceProvider),

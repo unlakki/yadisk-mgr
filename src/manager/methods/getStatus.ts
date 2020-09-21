@@ -1,7 +1,7 @@
 import Bluebird from 'bluebird';
-import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 import { DiskInstance } from '../../instance';
 import Status from '../../instance/interfaces/Status';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 const getStatus = (istanceProvider: IDiskInstanceProvider) => async () =>
   Bluebird.reduce<DiskInstance, Status>(

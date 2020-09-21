@@ -1,7 +1,7 @@
 import { posix as Path } from 'path';
-import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
-import DirListOptions from '../../instance/interfaces/DirListOptions';
 import getRootDirList from '../utils/getRootDirList';
+import DirListOptions from '../../instance/interfaces/DirListOptions';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 const getDirList = (instanceProvider: IDiskInstanceProvider) => async (path: string, options?: DirListOptions) => {
   if (path === '/') {

@@ -1,7 +1,7 @@
 import Bluebird from 'bluebird';
-import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 import Resource from '../../instance/interfaces/Resource';
 import ResourceType from '../../instance/enums/ResourceType';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 const getRootDirList = (instanceProvider: IDiskInstanceProvider) =>
   Bluebird.all<Resource>(

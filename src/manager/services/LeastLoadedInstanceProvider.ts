@@ -1,6 +1,6 @@
 import Bluebird from 'bluebird';
-import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 import InstanceLoadData from './interfaces/InstanceLoadData';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 class LeastLoadedInstanceProvider {
   private readonly _instanceProvider: IDiskInstanceProvider;
