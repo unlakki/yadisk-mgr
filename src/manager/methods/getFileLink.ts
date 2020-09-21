@@ -1,10 +1,11 @@
 import { posix as Path } from 'path';
+import BadPathPart from '../../errors/BadPathPart';
 import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 const getFileLink = (instaceProvider: IDiskInstanceProvider) => async (path: string) => {
   const [id, ...pathParts] = path.slice(1).split('/');
   if (!pathParts.length) {
-    throw new Error('Access denied.');
+    throw new BadPathPart(path);
   }
 
   const instance = instaceProvider.get(id);

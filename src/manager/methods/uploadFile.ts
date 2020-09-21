@@ -1,7 +1,8 @@
 import { posix as Path } from 'path';
 import LeastLoadedInstanceProvider from '../services/LeastLoadedInstanceProvider';
-import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
+import DiskError from '../../errors/DiskError';
 import FileUploadOptions from '../../instance/interfaces/FileUploadOptions';
+import IDiskInstanceProvider from '../../services/interfaces/IDiskInstanceProvider';
 
 const uploadFile = (instanceProvider: IDiskInstanceProvider) => {
   const leastLoadedInstanceProvider = new LeastLoadedInstanceProvider(instanceProvider);
@@ -11,7 +12,7 @@ const uploadFile = (instanceProvider: IDiskInstanceProvider) => {
 
     const hasEnoughSpace = await leastLoadedInstanceProvider.hasEnoughSpace(buffer.length);
     if (!hasEnoughSpace) {
-      throw new Error('Not enough free space.');
+      throw new DiskError('Not enough free space');
     }
 
     const savePath = await leastLoadedInstance.uploadFile(buffer, options);
