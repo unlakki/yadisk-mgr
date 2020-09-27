@@ -39,7 +39,11 @@ const reducer = (fetchProvider: IFetchProvider, jsonParser: IJsonParser) => asyn
   return currentPath;
 };
 
-const createNestedDirectories = (fetchProvider: IFetchProvider, jsonParser: IJsonParser, path: string) =>
+const createNestedDirectories = (
+  fetchProvider: IFetchProvider,
+  jsonParser: IJsonParser,
+  path: string,
+) =>
   Bluebird.reduce<string, string>(
     StringExtensions.removeLeadingChar(path, Path.sep).split(Path.sep),
     reducer(fetchProvider, jsonParser),

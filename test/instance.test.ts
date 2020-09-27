@@ -51,7 +51,10 @@ describe('instance', () => {
 
     describe('file', () => {
       before(async () => {
-        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.getResourceMetadata.test-file' });
+        await instance.uploadFile(Buffer.alloc(1), {
+          dir: '/',
+          name: 'i.getResourceMetadata.test-file',
+        });
       });
 
       after(async () => {
@@ -192,7 +195,10 @@ describe('instance', () => {
 
     describe('file', () => {
       before(async () => {
-        await instance.uploadFile(Buffer.alloc(1), { dir: '/', name: 'i.deleteResource.test-file' });
+        await instance.uploadFile(Buffer.alloc(1), {
+          dir: '/',
+          name: 'i.deleteResource.test-file',
+        });
       });
 
       it('should return true if sucessfully deleted', async () => {

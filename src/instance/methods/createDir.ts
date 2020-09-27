@@ -10,7 +10,9 @@ const createDir = (fetchProvider: IFetchProvider, jsonParser: IJsonParser): Crea
   const handleFetchError = useHandleFetchError(jsonParser);
 
   return async (path: string) => {
-    await handleFetchError(() => fetchProvider.fetch('/resources', { method: 'PUT', queryParams: { path } }));
+    await handleFetchError(() =>
+      fetchProvider.fetch('/resources', { method: 'PUT', queryParams: { path } }),
+    );
 
     return true;
   };

@@ -11,7 +11,10 @@ const deleteResource = (fetchProvider: IFetchProvider, jsonParser: IJsonParser) 
 
   return async (path: string) => {
     await handleFetchError(() =>
-      fetchProvider.fetch('/resources', { method: 'DELETE', queryParams: { path, permanently: 'true' } }),
+      fetchProvider.fetch('/resources', {
+        method: 'DELETE',
+        queryParams: { path, permanently: 'true' },
+      }),
     );
 
     return true;

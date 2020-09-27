@@ -20,7 +20,9 @@ const getFileLink = (fetchProvider: IFetchProvider, jsonParser: IJsonParser) => 
       throw new BadResourceType(type);
     }
 
-    const res = await handleHetchError(() => fetchProvider.fetch('/resources/download', { queryParams: { path } }));
+    const res = await handleHetchError(() =>
+      fetchProvider.fetch('/resources/download', { queryParams: { path } }),
+    );
 
     return jsonParser.parse<FileLink>(res).href;
   };
